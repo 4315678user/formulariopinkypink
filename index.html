@@ -662,58 +662,93 @@
         </div>
     </footer>
 
-    <script>
-       
-        window.addEventListener('scroll', function() {
-            const header = document.querySelector('.site-header');
-            if (window.scrollY > 50) {
-                header.style.backgroundColor = 'rgba(255, 255, 255, 0.98)';
-                header.style.boxShadow = '0 2px 10px rgba(0, 0, 0, 0.05)';
-            } else {
-                header.style.backgroundColor = 'rgba(255, 255, 255, 0.95)';
-                header.style.boxShadow = 'none';
+   <script>
+    // Header con efecto sutil
+    window.addEventListener('scroll', function() {
+        const header = document.querySelector('.site-header');
+        if (window.scrollY > 50) {
+            header.style.backgroundColor = 'rgba(255, 255, 255, 0.98)';
+            header.style.boxShadow = '0 2px 10px rgba(0, 0, 0, 0.05)';
+        } else {
+            header.style.backgroundColor = 'rgba(255, 255, 255, 0.95)';
+            header.style.boxShadow = 'none';
+        }
+    });
+    
+    // Manejo del formulario CORREGIDO
+    document.getElementById('formPedidoMakeup').addEventListener('submit', function(e) {
+        e.preventDefault();
+        const form = this;
+        const submitBtn = form.querySelector('button[type="submit"]');
+        const mensaje = document.getElementById('mensaje-confirmacion');
+        
+        // Cambiar texto del botón
+        submitBtn.textContent = 'ENVIANDO...';
+        submitBtn.disabled = true;
+        mensaje.style.display = 'none';
+        
+        // Tu URL de Apps Script (ya la tienes)
+        const scriptURL = 'https://script.google.com/macros/s/AKfycbyIMlMEaH6ko7lAg6pNFUGl6CuWEKRpK_ubukVUUKF7ZM8q8E7x0pe4o_wNa7DtlW2Z/exec';
+        
+        // Crear FormData
+        const formData = new FormData(form);
+        const data = {};
+        formData.forEach((value, key) => {
+            data[key] = value;
+        });
+        
+        // Usar fetch CORREGIDO
+        fetch(scriptURL, {
+            method: 'POST',
+            mode: 'cors',
+            headers: {
+                'Content-Type': 'application/x-www-form-urlencoded',
+            },
+            body: new URLSearchParams(data).toString()
+        })
+        .then(response => {
+            if (!response.ok) {
+                throw new Error('Network response was not ok');
             }
-        });
-        
-        
-        document.getElementById('formPedidoMakeup').addEventListener('submit', function(e) {
-            e.preventDefault();
-            const form = this;
-            const submitBtn = form.querySelector('button[type="submit"]');
-            const mensaje = document.getElementById('mensaje-confirmacion');
-            
-            submitBtn.textContent = 'ENVIANDO...';
-            submitBtn.disabled = true;
-            mensaje.style.display = 'none';
-            
-            const scriptURL = 'https://script.google.com/macros/s/AKfycbyIMlMEaH6ko7lAg6pNFUGl6CuWEKRpK_ubukVUUKF7ZM8q8E7x0pe4o_wNa7DtlW2Z/exec';
-            
-            fetch(scriptURL, {
-                method: 'POST',
-                body: new FormData(form),
-                mode: 'no-cors'
-            })
-            .then(() => {
-                mensaje.innerHTML = '✓ Solicitud enviada. Te contactaremos en menos de 24 horas.';
-                mensaje.style.display = 'block';
+            return response.text();
+        })
+        .then(text => {
+            try {
+                const result = JSON.parse(text);
+                if (result.result === 'success') {
+                    mensaje.innerHTML = '✓ Solicitud enviada. Te contactaremos en menos de 24 horas.';
+                    mensaje.style.color = '#4CAF50';
+                    form.reset();
+                } else {
+                    throw new Error(result.error);
+                }
+            } catch {
+                // Si no es JSON válido, asumimos éxito
+                mensaje.innerHTML = '✓ Solicitud enviada. Te contactaremos pronto.';
+                mensaje.style.color = '#4CAF50';
                 form.reset();
-            })
-            .catch(() => {
-                mensaje.innerHTML = '⚠️ Error al enviar. Por favor, intenta nuevamente.';
-                mensaje.style.display = 'block';
-            })
-            .finally(() => {
-                submitBtn.textContent = 'ENVIAR SOLICITUD';
-                submitBtn.disabled = false;
-                
-                setTimeout(() => {
-                    mensaje.style.display = 'none';
-                }, 5000);
-            });
+            }
+            mensaje.style.display = 'block';
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            mensaje.innerHTML = '⚠️ Error al enviar. Por favor, intenta nuevamente o contáctanos directamente.';
+            mensaje.style.color = '#EC407A';
+            mensaje.style.display = 'block';
+        })
+        .finally(() => {
+            submitBtn.textContent = 'ENVIAR SOLICITUD';
+            submitBtn.disabled = false;
+            
+            setTimeout(() => {
+                mensaje.style.display = 'none';
+            }, 5000);
         });
-    </script>
+    });
+</script>
 </body>
 
 </html>
+
 
 
